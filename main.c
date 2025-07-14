@@ -150,6 +150,8 @@ void main(void) {
         unsigned int xValue = readADC(ADC12INCH_0); // eixo X (P6.0)
         unsigned int yValue = readADC(ADC12INCH_1); // eixo Y (P6.1)
 
+        uint8_t precisaAtualizarLCD = 0;
+
         if (fase == 0) {
             if (xValue > 110 && xValue < 140) {
                 lastXDir = 0;
@@ -167,28 +169,54 @@ void main(void) {
                 __delay_cycles(200000);
             }
         }
+        static uint8_t valor[5] = {0, 0, 0, 0, 0};
+        static uint8_t cursorPos = 0; // 0 a 4
 
-        else if (fase == 1) {
+        if (fase == 1) {
+            if (xValue > 110 && xValue < 140) {
+                lastXDir = 0;
+            } else if (xValue >= 180 && lastXDir != 1) { // Direita
+                if (cursorPos < 4) cursorPos++;
+                lastXDir = 1;
+                precisaAtualizarLCD = 1;
+                __delay_cycles(200000);
+            } else if (xValue <= 50 && lastXDir != 2) { // Esquerda
+                if (cursorPos > 0) cursorPos--;
+                lastXDir = 2;
+                precisaAtualizarLCD = 1;
+                __delay_cycles(200000);
+            }
+            // Detecta movimento vertical (cima/baixo) para alterar valor
             if (yValue > 110 && yValue < 140) {
                 lastYDir = 0;
-            } else if (yValue >= 180 && lastYDir != 1) {
-                contCoin--;
-                lcdClear();
-                lcdWrite("Qtd de moedas:\n");
-                char buffer[16];
-                sprintf(buffer, "%d", contCoin);
-                lcdWrite(buffer);
+            } else if (yValue >= 180 && lastYDir != 1) { // Para baixo
+                if (valor[cursorPos] > 0) valor[cursorPos]--;
                 lastYDir = 1;
+                precisaAtualizarLCD = 1;
                 __delay_cycles(200000);
-            } else if (yValue <= 50 && lastYDir != 2) {
-                contCoin++;
-                lcdClear();
-                lcdWrite("Qtd de moedas:\n");
-                char buffer[16];
-                sprintf(buffer, "%d", contCoin);
-                lcdWrite(buffer);
+            } else if (yValue <= 50 && lastYDir != 2) { // Para cima
+                if (valor[cursorPos] < 9) valor[cursorPos]++;
                 lastYDir = 2;
+                precisaAtualizarLCD = 1;
                 __delay_cycles(200000);
+            }
+
+            if (precisaAtualizarLCD) {
+                lcdClear();
+                char buffer[16];
+                sprintf(buffer, "%d%d%d.%d%d", valor[0], valor[1], valor[2], valor[3], valor[4]);
+                lcdWrite(buffer);
+
+                char cursorLine[17] = "                ";
+                if (cursorPos < 3)
+                    cursorLine[cursorPos] = '^';
+                else
+                    cursorLine[cursorPos + 1] = '^'; // pula ponto
+
+                lcdWriteByte(0xC0, 0); // segunda linha
+                lcdWrite(cursorLine);
+
+                precisaAtualizarLCD = 0; // reseta flag
             }
         }
 
