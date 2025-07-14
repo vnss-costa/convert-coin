@@ -154,13 +154,13 @@ void main(void) {
             if (xValue > 110 && xValue < 140) {
                 lastXDir = 0;
             } else if (xValue >= 180 && lastXDir != 1) {
-                if (coin < 3) coin--;
+                if (coin < 3) coin++;
                 lcdClear();
                 chooseCoin(coin);
                 lastXDir = 1;
                 __delay_cycles(200000);
             } else if (xValue <= 50 && lastXDir != 2) {
-                if (coin > 1) coin++;
+                if (coin > 1) coin--;
                 lcdClear();
                 chooseCoin(coin);
                 lastXDir = 2;
@@ -172,7 +172,7 @@ void main(void) {
             if (yValue > 110 && yValue < 140) {
                 lastYDir = 0;
             } else if (yValue >= 180 && lastYDir != 1) {
-                contCoin++;
+                contCoin--;
                 lcdClear();
                 lcdWrite("Qtd de moedas:\n");
                 char buffer[16];
@@ -181,7 +181,7 @@ void main(void) {
                 lastYDir = 1;
                 __delay_cycles(200000);
             } else if (yValue <= 50 && lastYDir != 2) {
-                contCoin--;
+                contCoin++;
                 lcdClear();
                 lcdWrite("Qtd de moedas:\n");
                 char buffer[16];
